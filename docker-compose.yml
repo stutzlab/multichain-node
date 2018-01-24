@@ -1,0 +1,29 @@
+version: '2'
+
+services:
+
+    genesis-node:
+        image: stutzlab/multichain-genesis
+        ports:
+            - "7000:7000"
+            - "8000:8000"
+            - "9000:9000"
+        environment:
+            CHAINNAME: MyChain
+            RPC_USER: multichainrpc
+            RPC_PASSWORD: multichain123
+            PARAM_ANYONE_CAN_CONNECT: anyone-can-connect|false
+            PARAM_ANYONE_CAN_MINE: anyone-can-mine|false
+
+    secondary-node:
+        build: .
+        ports:
+            - "7001:7000"
+            - "8001:8000"
+            - "9001:9000"
+        environment:
+            RPC_USER: multichainrpc
+            RPC_PASSWORD: multichain123
+            PEER_CHAINNAME: MyChain
+            PEER_HOST: $HOST_IP
+            PEER_PORT: 9000
