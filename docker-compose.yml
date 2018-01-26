@@ -15,13 +15,27 @@ services:
             PARAM_ANYONE_CAN_CONNECT: anyone-can-connect|false
             PARAM_ANYONE_CAN_MINE: anyone-can-mine|false
 
-    secondary-node:
+    second-node:
         build: .
         image: stutzlab/multichain-node
         ports:
             - "7001:7000"
             - "8001:8000"
             - "9001:9000"
+        environment:
+            PEER_CHAINNAME: MyChain
+            PEER_HOST: $HOST_IP
+            PEER_PORT: 9000
+            RPC_USER: multichainrpc
+            RPC_PASSWORD: multichain123
+
+    third-node:
+        build: .
+        image: stutzlab/multichain-node
+        ports:
+            - "7002:7000"
+            - "8002:8000"
+            - "9002:9000"
         environment:
             PEER_CHAINNAME: MyChain
             PEER_HOST: $HOST_IP
