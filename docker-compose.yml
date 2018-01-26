@@ -17,13 +17,14 @@ services:
 
     secondary-node:
         build: .
+        image: stutzlab/multichain-node
         ports:
             - "7001:7000"
             - "8001:8000"
             - "9001:9000"
         environment:
-            RPC_USER: multichainrpc
-            RPC_PASSWORD: multichain123
             PEER_CHAINNAME: MyChain
             PEER_HOST: $HOST_IP
             PEER_PORT: 9000
+            RPC_USER: multichainrpc
+            RPC_PASSWORD: multichain123

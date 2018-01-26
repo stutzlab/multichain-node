@@ -38,20 +38,56 @@ EOF
 fi
 
 
-if [ ! -d /root/.multichain/$PEER_CHAINNAME ]; then
-    echo "No chain found yet"
-else
-    echo "Chain $PEER_CHAINNAME found. params.dat:"
-    cat /root/.multichain/$PEER_CHAINNAME/params.dat
+if [ ! -f /root/.multichain/_connected ]; then
+    echo "No chain found yet. Initializing first peer connection..."
 
-    echo "Starting Multichain Explorer..."
-    python -m Mce.abe --config /root/.multichain/explorer.conf&
+    set -x
+    multichaind -daemon $PEER_CHAINNAME@$PEER_HOST:$PEER_PORT $RUNTIME_PARAMS \
+      -port=$NETWORK_PORT -rpcallowip=$RPC_ALLOW_IP -rpcport=$RPC_PORT \
+      -rpcuser=$RPC_USER -rpcpassword=$RPC_PASSWORD
+    set +x
+
+    sleep 3
+
+    #rpcport and rpcpassword are not configured correctly by default. forcing it.
+    cat << EOF > /root/.multichain/$PEER_CHAINNAME/multichain.conf
+rpcuser=$RPC_USER
+rpcpassword=$RPC_PASSWORD
+rpcport=$RPC_PORT
+EOF
+
+    echo "Testing if connected to peer succesfully..."
+    multichain-cli $PEER_CHAINNAME ping
+    LE=$?
+
+    if [ $LE -eq 0 ]; then
+        echo "Connected to peer node successfuly. Local chain initialized."
+        touch /root/.multichain/_connected
+
+        multichain-cli $PEER_CHAINNAME stop
+        sleep 3
+        
+    else
+        echo "Failed to connect to peer. See instructions on how to grant permission to this node above."
+        exit $?
+    fi
+
 fi
 
+echo ""
+echo ""
+echo "/root/.multichain/$PEER_CHAINNAME/params.dat contents:"
+cat /root/.multichain/$PEER_CHAINNAME/params.dat
+echo ""
+echo ""
 
+echo ""
+echo "Starting Multichain Explorer..."
+python -m Mce.abe --config /root/.multichain/explorer.conf&
+
+echo ""
 echo "Starting Multichain and connecting it to a peer node..."
 set -x
 multichaind $PEER_CHAINNAME@$PEER_HOST:$PEER_PORT $RUNTIME_PARAMS \
       -port=$NETWORK_PORT -rpcallowip=$RPC_ALLOW_IP -rpcport=$RPC_PORT \
-      -rpcuser=$RPC_USER -rpcpassword=$RPC_PASS
-
+      -rpcuser=$RPC_USER -rpcpassword=$RPC_PASSWORD
